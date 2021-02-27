@@ -1,10 +1,11 @@
+require('newrelic');
 const express = require('express');
 const compression = require('compression');
 const axios = require('axios');
 const cors = require('cors');
 const app = express();
 const port = 3000;
-const imagesIP = '13.52.213.118:3006';
+const imagesIP = 'localhost:3006';
 const shoppingIP = '18.222.223.190:3004';
 const reviewsIP = '54.151.123.24:3002';
 const sellerIP = '3.21.248.149:3005';
@@ -15,19 +16,15 @@ app.use(cors());
 app.use(express.urlencoded({ extended: false }));
 app.use('/items/:itemId', express.static('client'));
 
-app.listen(port, () => {
-	// eslint-disable-next-line no-console
-	console.log(`Listening at http://localhost:${port}`);
-});
-
 app.get('/serviceBundles', (req, res) => {
 	let images = axios.get(`http://${imagesIP}/items/1/bundle.js`);
-	let shopping = axios.get(`http://${shoppingIP}/items/1/bundle.js`);
-	let reviews = axios.get(`http://${reviewsIP}/items/1/bundle.js`);
-	let seller = axios.get(`http://${sellerIP}/items/1/bundle.js`);
+	// let shopping = axios.get(`http://${shoppingIP}/items/1/bundle.js`);
+	// let reviews = axios.get(`http://${reviewsIP}/items/1/bundle.js`);
+	// let seller = axios.get(`http://${sellerIP}/items/1/bundle.js`);
 
 	// ****add images service bundle when ready to promise
-	Promise.all([images, shopping, reviews, seller])
+	//Promise.all([images, shopping, reviews, seller])
+	Promise.all([images])
 		.then((response) => {
 			let data = '';
 			response.forEach((resp) => {
@@ -41,10 +38,24 @@ app.get('/serviceBundles', (req, res) => {
 });
 
 // GET IMAGES DATA
-app.get('/item/:item_id/images', (req, res) => {
+app.get('/items/:item_id/images', (req, res) => {
 	let item_id = req.params.item_id;
 	axios
-		.get(`http://${imagesIP}/item/${item_id}/images`)
+		.get(`http://${imagesIP}/items/${item_id}/images`)
+		.then((response) => {
+			res.status(200).send(response.data);
+		})
+		.catch((err) => {
+			console.log(err);
+			res.status('404');
+		});
+});
+
+app.post('/items/:item_id/images', (req, res) => {
+	let item_id = req.params.item_id;
+	let url = req.body.url;
+	axios
+		.post(`http://${imagesIP}/items/${item_id}/images`, req.body)
 		.then((response) => {
 			res.status(200).send(response.data);
 		})
@@ -116,4 +127,9 @@ app.get('/item/images/distinct', (req, res) => {
 		.catch((err) => {
 			res.status('404');
 		});
+});
+
+app.listen(port, () => {
+	// eslint-disable-next-line no-console
+	console.log(`Listening at http://localhost:${port}`);
 });
