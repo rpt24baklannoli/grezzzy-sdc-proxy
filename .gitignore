@@ -2,3 +2,5 @@ node_modules/
 package-lock.json
 newrelic.js
 *.log
+*.pem
+aws/
